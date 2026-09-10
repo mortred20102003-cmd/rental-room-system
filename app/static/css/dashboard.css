@@ -1,0 +1,77 @@
+.dashboard-shell {
+  max-width: 720px;
+}
+
+.dashboard-content {
+  display: grid;
+  gap: 24px;
+}
+
+.status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+@media (min-width: 640px) {
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.metric-card {
+  padding: 18px 16px 14px;
+}
+
+.metric-card .card-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.metric-card .slash {
+  color: var(--muted);
+  margin: 0 4px;
+}
+
+.metric-card .bar {
+  margin-top: 12px;
+}
+
+.topology-panel {
+  padding: 20px;
+}
+
+.topology-panel h2 {
+  margin: 0 0 14px;
+  letter-spacing: -0.05em;
+}
+
+.topology-list {
+  display: grid;
+  gap: 12px;
+}
+
+.public-access {
+  margin-top: 10px;
+}
+
+.footer-note {
+  margin-top: 18px;
+  text-align: center;
+}

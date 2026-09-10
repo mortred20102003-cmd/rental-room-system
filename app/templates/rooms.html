@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Rooms{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">AVAILABLE</p>
+      <h1 class="page-title">Rooms</h1>
+    </div>
+    <button class="primary-button js-open-modal" type="button" data-target="room-modal">Add room</button>
+  </div>
+
+  <div class="toolbar panel-toolbar">
+    <label class="search-group" aria-label="Search rooms">
+      <span aria-hidden="true">⌕</span>
+      <input type="search" placeholder="Search rooms" />
+    </label>
+    <label class="field-inline">
+      <span>Property</span>
+      <select class="filter-select">
+        <option>All properties</option>
+      </select>
+    </label>
+    <label class="field-inline">
+      <span>Occupancy</span>
+      <select class="filter-select">
+        <option>All rooms</option>
+        <option>Occupied</option>
+        <option>Vacant</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="rooms-grid" id="rooms-grid"></div>
+</section>
+
+<div class="modal" id="room-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
+    <div class="modal-header">
+      <h3 id="room-modal-title">Add room</h3>
+      <button class="close-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <form id="room-form" class="property-form">
+      <div class="form-grid">
+        <div class="field">
+          <label for="room-number">Room number</label>
+          <input id="room-number" class="form-control" name="room_number" required />
+        </div>
+        <div class="field">
+          <label for="room-property">Property</label>
+          <select id="room-property" class="form-control" name="property_id" required>
+            <option value="">Select property</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="room-type">Type</label>
+          <select id="room-type" class="form-control" name="room_type">
+            <option>Studio</option>
+            <option>1BR</option>
+            <option>2BR</option>
+            <option>Suite</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="room-price">Monthly rent</label>
+          <input id="room-price" class="form-control" name="monthly_rent" type="number" min="0" step="0.01" />
+        </div>
+        <div class="field full-span">
+          <label for="room-status">Status</label>
+          <select id="room-status" class="form-control" name="occupied">
+            <option value="false">Vacant</option>
+            <option value="true">Occupied</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="ghost-button" type="button" data-close-modal="room-modal">Cancel</button>
+        <button class="primary-button" type="submit">Save room</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    admin.initRoomGrid();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends "layout.html" %}
+
+{% block title %}Database — {{ app_name }}{% endblock %}
+{% block eyebrow %}<p class="section-title">DATA LAYER</p>{% endblock %}
+{% block heading %}PostgreSQL Manager{% endblock %}
+{% block subheading %}Inspect, create, and delete records across your relational tables.{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap gap-2 mb-5" id="tabs">
+  <button class="tab-btn btn btn-primary" data-tab="properties">Properties ({{ properties|length }})</button>
+  <button class="tab-btn btn btn-ghost"   data-tab="rooms">Rooms ({{ rooms|length }})</button>
+  <button class="tab-btn btn btn-ghost"   data-tab="tenants">Tenants ({{ tenants|length }})</button>
+  <button class="tab-btn btn btn-ghost"   data-tab="leases">Leases ({{ leases|length }})</button>
+  <button class="tab-btn btn btn-ghost"   data-tab="payments">Payments ({{ payments|length }})</button>
+</div>
+
+<section class="tab-panel card" data-panel="properties">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold">Properties</h2>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-property')">+ New Property</button>
+  </div>
+  {% if properties %}
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Name</th><th>Address</th><th>City</th><th class="text-right">Actions</th></tr></thead>
+    <tbody>
+    {% for p in properties %}
+      <tr>
+        <td class="text-muted dark:text-slate-400">#{{ p.id }}</td>
+        <td class="font-semibold">{{ p.name }}</td>
+        <td>{{ p.address }}</td>
+        <td>{{ p.city or "—" }}</td>
+        <td class="text-right">
+          <form method="post" action="/console/database/property/{{ p.id }}/delete"
+                onsubmit="return confirm('Delete property?')" class="inline">
+            <button class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No properties yet.</p>
+  {% endif %}
+</section>
+
+<section class="tab-panel card hidden" data-panel="rooms">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold">Rooms</h2>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-room')">+ New Room</button>
+  </div>
+  {% if rooms %}
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Room</th><th>Property</th><th>Rent</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+    <tbody>
+    {% for r in rooms %}
+      <tr>
+        <td class="text-muted dark:text-slate-400">#{{ r.id }}</td>
+        <td class="font-semibold">{{ r.room_number }}</td>
+        <td>#{{ r.property_id }}</td>
+        <td>₱{{ "%.0f"|format(r.monthly_rent) }}</td>
+        <td>{% if r.is_occupied %}<span class="chip">Occupied</span>{% else %}<span class="chip offline">Vacant</span>{% endif %}</td>
+        <td class="text-right">
+          <form method="post" action="/console/database/room/{{ r.id }}/delete"
+                onsubmit="return confirm('Delete room?')" class="inline">
+            <button class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No rooms yet.</p>
+  {% endif %}
+</section>
+
+<section class="tab-panel card hidden" data-panel="tenants">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold">Tenants</h2>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-tenant')">+ New Tenant</button>
+  </div>
+  {% if tenants %}
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th class="text-right">Actions</th></tr></thead>
+    <tbody>
+    {% for t in tenants %}
+      <tr>
+        <td class="text-muted dark:text-slate-400">#{{ t.id }}</td>
+        <td class="font-semibold">{{ t.full_name }}</td>
+        <td>{{ t.email or "—" }}</td>
+        <td>{{ t.phone or "—" }}</td>
+        <td class="text-right">
+          <form method="post" action="/console/database/tenant/{{ t.id }}/delete"
+                onsubmit="return confirm('Delete tenant?')" class="inline">
+            <button class="btn btn-danger btn-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No tenants yet.</p>
+  {% endif %}
+</section>
+
+<section class="tab-panel card hidden" data-panel="leases">
+  <h2 class="text-lg font-bold mb-4">Leases</h2>
+  {% if leases %}
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Room</th><th>Tenant</th><th>Start</th><th>End</th><th>Rent</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for l in leases %}
+      <tr>
+        <td class="text-muted dark:text-slate-400">#{{ l.id }}</td>
+        <td>#{{ l.room_id }}</td><td>#{{ l.tenant_id }}</td>
+        <td>{{ l.start_date }}</td><td>{{ l.end_date }}</td>
+        <td>₱{{ "%.0f"|format(l.monthly_rent) }}</td>
+        <td>{% if l.status == "active" %}<span class="chip">Active</span>{% else %}<span class="chip offline">{{ l.status }}</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No leases yet.</p>
+  {% endif %}
+</section>
+
+<section class="tab-panel card hidden" data-panel="payments">
+  <h2 class="text-lg font-bold mb-4">Payments</h2>
+  {% if payments %}
+  <table class="data-table">
+    <thead><tr><th>ID</th><th>Lease</th><th>Amount</th><th>Due</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+    <tbody>
+    {% for p in payments %}
+      <tr>
+        <td class="text-muted dark:text-slate-400">#{{ p.id }}</td>
+        <td>#{{ p.lease_id }}</td>
+        <td>₱{{ "%.0f"|format(p.amount) }}</td>
+        <td>{{ p.due_date or "—" }}</td>
+        <td>{% if p.status == "paid" %}<span class="chip">Paid</span>
+            {% elif p.status == "overdue" %}<span class="chip offline">Overdue</span>
+            {% else %}<span class="chip checking">Pending</span>{% endif %}</td>
+        <td class="text-right">
+          {% if p.status != "paid" %}
+          <form method="post" action="/console/database/payment/{{ p.id }}/mark-paid" class="inline">
+            <button class="btn btn-primary btn-sm">Mark Paid</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No payments yet.</p>
+  {% endif %}
+</section>
+
+<div id="modal-property" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 class="text-lg font-bold mb-4">New Property</h3>
+    <form method="post" action="/console/database/property/create" class="space-y-3">
+      <input class="input" name="name" placeholder="Name" required />
+      <input class="input" name="address" placeholder="Address" required />
+      <input class="input" name="city" placeholder="City (optional)" />
+      <div class="flex gap-2 pt-2">
+        <button class="btn btn-primary flex-1" type="submit">Create</button>
+        <button class="btn btn-ghost" type="button" onclick="closeModal('modal-property')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-room" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 class="text-lg font-bold mb-4">New Room</h3>
+    <form method="post" action="/console/database/room/create" class="space-y-3">
+      <select class="select" name="property_id" required>
+        <option value="">Select property…</option>
+        {% for p in properties %}<option value="{{ p.id }}">#{{ p.id }} — {{ p.name }}</option>{% endfor %}
+      </select>
+      <input class="input" name="room_number" placeholder="Room number" required />
+      <input class="input" name="monthly_rent" type="number" step="0.01" placeholder="Monthly rent" required />
+      <input class="input" name="floor" type="number" value="1" placeholder="Floor" />
+      <input class="input" name="room_type" placeholder="Type (optional)" />
+      <div class="flex gap-2 pt-2">
+        <button class="btn btn-primary flex-1" type="submit">Create</button>
+        <button class="btn btn-ghost" type="button" onclick="closeModal('modal-room')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-tenant" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 class="text-lg font-bold mb-4">New Tenant</h3>
+    <form method="post" action="/console/database/tenant/create" class="space-y-3">
+      <input class="input" name="full_name" placeholder="Full name" required />
+      <input class="input" name="email" type="email" placeholder="Email (optional)" />
+      <input class="input" name="phone" placeholder="Phone (optional)" />
+      <div class="flex gap-2 pt-2">
+        <button class="btn btn-primary flex-1" type="submit">Create</button>
+        <button class="btn btn-ghost" type="button" onclick="closeModal('modal-tenant')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('btn-primary', b.dataset.tab === tab);
+      b.classList.toggle('btn-ghost', b.dataset.tab !== tab);
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('hidden', p.dataset.panel !== tab);
+    });
+  });
+});
+function openModal(id)  { const m = document.getElementById(id); if (m) m.classList.remove('hidden'); }
+function closeModal(id) { const m = document.getElementById(id); if (m) m.classList.add('hidden'); }
+document.querySelectorAll('.modal-backdrop').forEach(b => {
+  b.addEventListener('click', e => { if (e.target === b) closeModal(b.id); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape')
+    document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => closeModal(m.id));
+});
+</script>
+{% endblock %}

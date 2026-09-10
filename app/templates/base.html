@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{% block title %}Rental Room System{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    {% block styles %}{% endblock %}
+  </head>
+  <body data-page="{{ self.title()|trim|lower|replace(' ', '-') }}">
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Sidebar navigation">
+        <div class="sidebar-header">
+          <div class="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" role="img" aria-label="Rental system logo">
+              <rect x="8" y="8" width="48" height="48" rx="12" fill="currentColor" opacity="0.12"></rect>
+              <path d="M18 41V27.5L32 18l14 9.5V41M24 41V31h16v10M28 31V24h8v7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="sidebar-kicker">ALL-IN-ONE</p>
+            <h2>Rental OS</h2>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+          <a class="nav-item" href="/">Overview</a>
+          <a class="nav-item" href="/properties">Properties</a>
+          <a class="nav-item" href="/rooms">Rooms</a>
+          <a class="nav-item" href="/tenants">Tenants</a>
+          <a class="nav-item" href="/leases">Leases</a>
+          <a class="nav-item" href="/payments">Payments</a>
+          <a class="nav-item" href="/maintenance">Maintenance</a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span class="status-pill online">System healthy</span>
+        </div>
+      </aside>
+
+      <div class="main-panel">
+        <header class="topbar">
+          <button class="icon-button menu-button" type="button" aria-label="Toggle navigation">☰</button>
+
+          <div class="topbar-brand" aria-label="Application name">
+            <span class="brand-small">ALL-IN-ONE BACKEND</span>
+            <span class="brand-main">System overview</span>
+          </div>
+
+          <div class="topbar-actions">
+            <span class="env-badge" id="env-badge">DEVELOPMENT</span>
+            <button class="primary-button owner-button" type="button" onclick="location.href='/login'">Owner<br />sign in</button>
+          </div>
+        </header>
+
+        <main class="page-shell">
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/admin.js"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

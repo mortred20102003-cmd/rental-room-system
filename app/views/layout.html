@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{{ app_name }} — Console{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ink:    '#0D1B2A',
+            accent: '#00C2D7',
+            muted:  '#5A6B7E',
+            paper:  '#F5F7FA',
+            card:   '#FFFFFF',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 3px rgba(13,27,42,0.06)',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="/static/css/console.css" />
+</head>
+<body class="text-ink bg-paper dark:bg-ink dark:text-slate-100 min-h-screen">
+  <div class="flex min-h-screen">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside id="sidebar"
+      class="w-64 bg-white dark:bg-[#132033] border-r border-slate-200 dark:border-slate-700
+             flex-shrink-0 flex flex-col fixed md:static inset-y-0 left-0 z-30
+             -translate-x-full md:translate-x-0 transition-transform duration-200">
+
+      <!-- Brand -->
+      <div class="p-5 border-b border-slate-200 dark:border-slate-700">
+        <p class="text-[10px] tracking-[2px] text-muted dark:text-slate-400 font-semibold">
+          ALL-IN-ONE BACKEND
+        </p>
+        <h1 class="text-lg font-bold mt-0.5">Rental Console</h1>
+      </div>
+
+      <!-- Nav -->
+      <nav class="p-3 space-y-1 text-sm flex-1">
+        <a href="/console/overview"
+           class="nav-item {% if active == 'overview' %}nav-item-active{% endif %}">
+          <span class="nav-icon">📊</span> System Overview
+        </a>
+        <a href="/docs" target="_blank" class="nav-item">
+          <span class="nav-icon">📘</span> API Docs
+          <span class="ml-auto text-[10px] text-muted dark:text-slate-500">↗</span>
+        </a>
+        <a href="/console/database"
+           class="nav-item {% if active == 'database' %}nav-item-active{% endif %}">
+          <span class="nav-icon">🗄️</span> PostgreSQL Manager
+        </a>
+        <a href="/console/ai"
+           class="nav-item {% if active == 'ai' %}nav-item-active{% endif %}">
+          <span class="nav-icon">🤖</span> AI Inspector
+          <span class="ml-auto text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold">
+            SOON
+          </span>
+        </a>
+        <a href="/console/security"
+           class="nav-item {% if active == 'security' %}nav-item-active{% endif %}">
+          <span class="nav-icon">🔐</span> Admin Security
+        </a>
+      </nav>
+
+      <!-- User footer -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-700 space-y-1 text-sm">
+        <div class="px-3 py-2 text-muted dark:text-slate-400 text-xs">
+          Signed in as
+          <span class="block text-ink dark:text-slate-100 font-semibold text-sm mt-0.5 truncate">
+            {{ current_user.username if current_user else "—" }}
+          </span>
+        </div>
+        <button id="theme-toggle" class="nav-item w-full text-left">
+          <span class="nav-icon">🌓</span> Toggle theme
+        </button>
+        <a href="/logout" class="nav-item text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+          <span class="nav-icon">⏻</span> Sign out
+        </a>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div id="overlay" class="fixed inset-0 bg-black/40 z-20 hidden md:hidden"></div>
+
+    <!-- ============ MAIN ============ -->
+    <main class="flex-1 min-w-0">
+
+      <!-- Topbar -->
+      <header class="sticky top-0 z-10 bg-paper/80 dark:bg-ink/80 backdrop-blur
+                     border-b border-slate-200 dark:border-slate-700 px-4 md:px-8 py-3
+                     flex items-center gap-3">
+        <button id="menu-btn" class="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+
+        <div class="flex-1"></div>
+
+        <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold
+                     px-3 py-1 rounded-md bg-amber-50 text-amber-700
+                     dark:bg-amber-900/30 dark:text-amber-300">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+          {{ environment }}
+        </span>
+
+        <a href="/" target="_blank"
+           class="hidden sm:inline text-xs text-muted dark:text-slate-400 hover:text-accent">
+          Public dashboard ↗
+        </a>
+      </header>
+
+      <!-- Page body -->
+      <div class="p-4 md:p-8 max-w-[1400px] mx-auto">
+
+        <!-- Page header -->
+        <div class="mb-6">
+          {% block eyebrow %}{% endblock %}
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mt-0.5">
+            {% block heading %}{% endblock %}
+          </h1>
+          <p class="text-sm text-muted dark:text-slate-400 mt-1">
+            {% block subheading %}{% endblock %}
+          </p>
+        </div>
+
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toasts" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+  <script src="/static/js/console.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

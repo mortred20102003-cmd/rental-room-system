@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Properties{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">MANAGE</p>
+      <h1 class="page-title">Properties</h1>
+    </div>
+    <button class="primary-button js-open-modal" type="button" data-target="property-modal">New property</button>
+  </div>
+
+  <div class="toolbar panel-toolbar">
+    <label class="search-group" aria-label="Search properties">
+      <span aria-hidden="true">⌕</span>
+      <input type="search" placeholder="Search properties" />
+    </label>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Location</th>
+          <th>Units</th>
+          <th>Occupancy</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="properties-table-body">
+        <tr>
+          <td colspan="5" class="muted-cell">Loading properties…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="modal" id="property-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="property-modal-title">
+    <div class="modal-header">
+      <h3 id="property-modal-title">Add property</h3>
+      <button class="close-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <form id="property-form" class="property-form">
+      <div class="form-grid">
+        <div class="field full-span">
+          <label for="property-name">Property name</label>
+          <input id="property-name" class="form-control" name="name" required />
+        </div>
+        <div class="field full-span">
+          <label for="property-address">Address</label>
+          <input id="property-address" class="form-control" name="address" required />
+        </div>
+        <div class="field">
+          <label for="property-city">City</label>
+          <input id="property-city" class="form-control" name="city" />
+        </div>
+        <div class="field">
+          <label for="property-units">Total units</label>
+          <input id="property-units" class="form-control" name="total_units" type="number" min="1" required />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="ghost-button" type="button" data-close-modal="property-modal">Cancel</button>
+        <button class="primary-button" type="submit">Save property</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    admin.initListPage({
+      entity: 'property',
+      apiPath: '/properties',
+      tableBodyId: 'properties-table-body',
+      modalId: 'property-modal',
+      formId: 'property-form',
+      fields: [
+        { key: 'name', label: 'Name' },
+        { key: 'address', label: 'Location' },
+        { key: 'total_units', label: 'Units', type: 'number' },
+        { key: 'occupied_units', label: 'Occupancy', formatter: (value, row) => `${value || 0}/${row.total_units || 0}` },
+      ],
+      renderRow: (property) => `
+        <tr>
+          <td>${property.name || '—'}</td>
+          <td>${property.address || '—'}</td>
+          <td>${property.total_units || 0}</td>
+          <td>${property.occupied_units || 0}/${property.total_units || 0}</td>
+          <td>
+            <div class="row-actions">
+              <button class="ghost-button" type="button" data-edit="${property.id}">Edit</button>
+              <button class="ghost-button danger" type="button" data-delete="${property.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `,
+      formBuilder: (row) => ({
+        name: row?.name || '',
+        address: row?.address || '',
+        city: row?.city || '',
+        total_units: row?.total_units || '',
+      }),
+      mapper: (formData) => ({
+        name: formData.name,
+        address: formData.address,
+        city: formData.city,
+        total_units: Number(formData.total_units),
+      })
+    });
+  });
+</script>
+{% endblock %}

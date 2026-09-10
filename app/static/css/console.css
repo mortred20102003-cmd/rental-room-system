@@ -1,0 +1,302 @@
+/* ============================================================
+   Rental Console — custom styles that extend Tailwind
+   ============================================================ */
+
+/* Paper-grid background (matches the public dashboard) */
+body {
+  background-color: #F5F7FA;
+  background-image:
+    linear-gradient(#E8EEF5 1px, transparent 1px),
+    linear-gradient(90deg, #E8EEF5 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark body {
+  background-color: #0D1B2A;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+}
+
+/* ---------- Sidebar nav items ---------- */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #334155;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.nav-item:hover {
+  background-color: #F1F5F9;
+}
+.dark .nav-item {
+  color: #CBD5E1;
+}
+.dark .nav-item:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.nav-item-active {
+  background-color: #E2E8F0;
+  color: #0D1B2A;
+  font-weight: 600;
+}
+.dark .nav-item-active {
+  background-color: rgba(0,194,215,0.15);
+  color: #E0F7FB;
+}
+
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 15px;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(13,27,42,0.06);
+  border: 1px solid #EEF2F7;
+}
+.dark .card {
+  background: #132033;
+  border-color: #1E2E44;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+
+.card-label {
+  font-size: 10.5px;
+  letter-spacing: 1.8px;
+  font-weight: 700;
+  color: #7A8A9E;
+  text-transform: uppercase;
+}
+.dark .card-label {
+  color: #64748B;
+}
+
+.card-value {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1;
+  margin-top: 8px;
+  letter-spacing: -1px;
+}
+
+/* ---------- Progress bar ---------- */
+.bar {
+  height: 6px;
+  background: #EDF1F6;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+.dark .bar {
+  background: #1E2E44;
+}
+.bar-fill {
+  height: 100%;
+  background: #00C2D7;
+  width: 0%;
+  transition: width 600ms ease;
+  border-radius: 3px;
+}
+
+/* ---------- Status chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: #E6F7EF;
+  color: #1A7F4B;
+  border: 1px solid #C8ECD9;
+  transition: background 200ms, color 200ms;
+}
+.chip::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.chip.offline {
+  background: #FDECEC;
+  color: #C0392B;
+  border-color: #F5C6C6;
+}
+.chip.checking {
+  background: #FDF6E3;
+  color: #B8860B;
+  border-color: #F2E2B6;
+}
+.dark .chip { background: rgba(26,127,75,0.15); border-color: rgba(26,127,75,0.35); }
+.dark .chip.offline { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.35); }
+
+/* ---------- Tables ---------- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table thead th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #7A8A9E;
+  font-weight: 700;
+  padding: 10px 12px;
+  border-bottom: 1px solid #EEF2F7;
+}
+.dark .data-table thead th {
+  color: #64748B;
+  border-color: #1E2E44;
+}
+.data-table tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #F3F6FA;
+  vertical-align: middle;
+}
+.dark .data-table tbody td {
+  border-color: #1E2E44;
+}
+.data-table tbody tr:hover {
+  background: #FAFCFE;
+}
+.dark .data-table tbody tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 80ms ease, background 120ms ease;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: #0D1B2A;
+  color: #FFFFFF;
+}
+.btn-primary:hover { background: #16263A; }
+
+.btn-ghost {
+  background: transparent;
+  color: #5A6B7E;
+  border: 1px solid #E2E8F0;
+}
+.btn-ghost:hover { background: #F1F5F9; }
+.dark .btn-ghost {
+  color: #CBD5E1;
+  border-color: #1E2E44;
+}
+.dark .btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+.btn-danger {
+  background: #C0392B;
+  color: #FFFFFF;
+}
+.btn-danger:hover { background: #A93226; }
+
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ---------- Inputs ---------- */
+.input,
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #FFFFFF;
+  color: #0D1B2A;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: #00C2D7;
+  box-shadow: 0 0 0 3px rgba(0,194,215,0.15);
+}
+.dark .input,
+.dark .select {
+  background: #0F1B2D;
+  border-color: #1E2E44;
+  color: #E2E8F0;
+}
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,27,42,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(13,27,42,0.25);
+  animation: modal-in 180ms ease-out;
+}
+.dark .modal { background: #132033; }
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  min-width: 260px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(13,27,42,0.15);
+  animation: toast-in 200ms ease-out;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toast.success { background: #1A7F4B; color: #fff; }
+.toast.error   { background: #C0392B; color: #fff; }
+.toast.info    { background: #0D1B2A; color: #fff; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------- Utilities ---------- */
+.section-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #00A3B4;
+  text-transform: uppercase;
+}

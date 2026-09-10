@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Leases{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">ACTIVE</p>
+      <h1 class="page-title">Leases</h1>
+    </div>
+    <button class="primary-button js-open-modal" type="button" data-target="lease-modal">New lease</button>
+  </div>
+
+  <div class="toolbar panel-toolbar">
+    <label class="search-group" aria-label="Search leases">
+      <span aria-hidden="true">⌕</span>
+      <input id="lease-search" type="search" placeholder="Search by tenant or reference" />
+    </label>
+    <select class="filter-select" id="lease-status-filter">
+      <option value="all">All statuses</option>
+      <option value="active">Active</option>
+      <option value="ended">Ended</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tenant</th>
+          <th>Room</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="leases-table-body">
+        <tr>
+          <td colspan="6" class="muted-cell">Loading leases…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="modal" id="lease-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="lease-modal-title">
+    <div class="modal-header">
+      <h3 id="lease-modal-title">Add lease</h3>
+      <button class="close-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <form id="lease-form" class="property-form">
+      <div class="form-grid">
+        <div class="field">
+          <label for="lease-tenant">Tenant</label>
+          <select id="lease-tenant" class="form-control" name="tenant_id" required>
+            <option value="">Select tenant</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="lease-room">Room</label>
+          <select id="lease-room" class="form-control" name="room_id" required>
+            <option value="">Select room</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="lease-start">Start date</label>
+          <input id="lease-start" class="form-control" type="date" name="start_date" required />
+        </div>
+        <div class="field">
+          <label for="lease-end">End date</label>
+          <input id="lease-end" class="form-control" type="date" name="end_date" required />
+        </div>
+        <div class="field full-span">
+          <label for="lease-status">Status</label>
+          <select id="lease-status" class="form-control" name="status">
+            <option value="active">Active</option>
+            <option value="ended">Ended</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="ghost-button" type="button" data-close-modal="lease-modal">Cancel</button>
+        <button class="primary-button" type="submit">Save lease</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    admin.initListPage({
+      entity: 'lease',
+      apiPath: '/leases',
+      tableBodyId: 'leases-table-body',
+      modalId: 'lease-modal',
+      formId: 'lease-form',
+      searchInputId: 'lease-search',
+      filterId: 'lease-status-filter',
+      renderRow: (lease) => `
+        <tr>
+          <td>${lease.tenant_name || '—'}</td>
+          <td>${lease.room_name || '—'}</td>
+          <td>${lease.start_date || '—'}</td>
+          <td>${lease.end_date || '—'}</td>
+          <td><span class="badge ${lease.status === 'active' ? 'success' : lease.status === 'ended' ? 'neutral' : 'danger'}">${lease.status || 'active'}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="ghost-button" type="button" data-edit="${lease.id}">Edit</button>
+              <button class="ghost-button danger" type="button" data-delete="${lease.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `,
+      formBuilder: (row) => ({
+        tenant_id: row?.tenant_id || '',
+        room_id: row?.room_id || '',
+        start_date: row?.start_date || '',
+        end_date: row?.end_date || '',
+        status: row?.status || 'active',
+      }),
+      mapper: (formData) => ({
+        tenant_id: Number(formData.tenant_id),
+        room_id: Number(formData.room_id),
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        status: formData.status,
+      })
+    });
+  });
+</script>
+{% endblock %}

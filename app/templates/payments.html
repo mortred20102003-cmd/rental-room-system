@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Payments{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">FINANCE</p>
+      <h1 class="page-title">Payments</h1>
+    </div>
+    <button class="primary-button js-open-modal" type="button" data-target="payment-modal">Record payment</button>
+  </div>
+
+  <div class="toolbar panel-toolbar">
+    <label class="search-group" aria-label="Search payments">
+      <span aria-hidden="true">⌕</span>
+      <input id="payment-search" type="search" placeholder="Search by lease or status" />
+    </label>
+    <select class="filter-select" id="payment-status-filter">
+      <option value="all">All statuses</option>
+      <option value="paid">Paid</option>
+      <option value="pending">Pending</option>
+      <option value="overdue">Overdue</option>
+    </select>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Lease</th>
+          <th>Amount</th>
+          <th>Due</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="payments-table-body">
+        <tr>
+          <td colspan="5" class="muted-cell">Loading payments…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="modal" id="payment-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
+    <div class="modal-header">
+      <h3 id="payment-modal-title">Record payment</h3>
+      <button class="close-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <form id="payment-form" class="property-form">
+      <div class="form-grid">
+        <div class="field">
+          <label for="payment-lease">Lease</label>
+          <select id="payment-lease" class="form-control" name="lease_id" required>
+            <option value="">Select lease</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="payment-amount">Amount</label>
+          <input id="payment-amount" class="form-control" type="number" step="0.01" min="0" name="amount" required />
+        </div>
+        <div class="field">
+          <label for="payment-due">Due date</label>
+          <input id="payment-due" class="form-control" type="date" name="due_date" required />
+        </div>
+        <div class="field">
+          <label for="payment-status">Status</label>
+          <select id="payment-status" class="form-control" name="status">
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="ghost-button" type="button" data-close-modal="payment-modal">Cancel</button>
+        <button class="primary-button" type="submit">Save payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    admin.initListPage({
+      entity: 'payment',
+      apiPath: '/payments',
+      tableBodyId: 'payments-table-body',
+      modalId: 'payment-modal',
+      formId: 'payment-form',
+      searchInputId: 'payment-search',
+      filterId: 'payment-status-filter',
+      renderRow: (payment) => `
+        <tr>
+          <td>${payment.lease_reference || payment.lease_id || '—'}</td>
+          <td>$${Number(payment.amount || 0).toFixed(2)}</td>
+          <td>${payment.due_date || '—'}</td>
+          <td><span class="badge ${payment.status === 'paid' ? 'success' : payment.status === 'overdue' ? 'danger' : 'warning'}">${payment.status || 'pending'}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="ghost-button" type="button" data-edit="${payment.id}">Edit</button>
+              <button class="ghost-button danger" type="button" data-delete="${payment.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `,
+      formBuilder: (row) => ({
+        lease_id: row?.lease_id || '',
+        amount: row?.amount || '',
+        due_date: row?.due_date || '',
+        status: row?.status || 'pending',
+      }),
+      mapper: (formData) => ({
+        lease_id: Number(formData.lease_id),
+        amount: Number(formData.amount),
+        due_date: formData.due_date,
+        status: formData.status,
+      })
+    });
+  });
+</script>
+{% endblock %}

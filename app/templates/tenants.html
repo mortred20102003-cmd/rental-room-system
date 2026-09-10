@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Tenants{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">RESIDENTS</p>
+      <h1 class="page-title">Tenants</h1>
+    </div>
+    <button class="primary-button js-open-modal" type="button" data-target="tenant-modal">Add tenant</button>
+  </div>
+
+  <div class="toolbar panel-toolbar">
+    <label class="search-group" aria-label="Search tenants">
+      <span aria-hidden="true">⌕</span>
+      <input id="tenant-search" type="search" placeholder="Search by name or email" />
+    </label>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Lease</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tenants-table-body">
+        <tr>
+          <td colspan="5" class="muted-cell">Loading tenants…</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="modal" id="tenant-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="tenant-modal-title">
+    <div class="modal-header">
+      <h3 id="tenant-modal-title">Add tenant</h3>
+      <button class="close-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <form id="tenant-form" class="property-form">
+      <div class="form-grid">
+        <div class="field">
+          <label for="tenant-name">Full name</label>
+          <input id="tenant-name" class="form-control" name="full_name" required />
+        </div>
+        <div class="field">
+          <label for="tenant-email">Email</label>
+          <input id="tenant-email" class="form-control" name="email" type="email" required />
+        </div>
+        <div class="field">
+          <label for="tenant-phone">Phone</label>
+          <input id="tenant-phone" class="form-control" name="phone" />
+        </div>
+        <div class="field">
+          <label for="tenant-status">Status</label>
+          <select id="tenant-status" class="form-control" name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="ghost-button" type="button" data-close-modal="tenant-modal">Cancel</button>
+        <button class="primary-button" type="submit">Save tenant</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    admin.initListPage({
+      entity: 'tenant',
+      apiPath: '/tenants',
+      tableBodyId: 'tenants-table-body',
+      modalId: 'tenant-modal',
+      formId: 'tenant-form',
+      searchInputId: 'tenant-search',
+      renderRow: (tenant) => `
+        <tr>
+          <td>${tenant.full_name || '—'}</td>
+          <td>${tenant.email || '—'}</td>
+          <td>${tenant.phone || '—'}</td>
+          <td><span class="badge neutral">${tenant.status || 'active'}</span></td>
+          <td>
+            <div class="row-actions">
+              <button class="ghost-button" type="button" data-edit="${tenant.id}">Edit</button>
+              <button class="ghost-button danger" type="button" data-delete="${tenant.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `,
+      formBuilder: (row) => ({
+        full_name: row?.full_name || '',
+        email: row?.email || '',
+        phone: row?.phone || '',
+        status: row?.status || 'active',
+      }),
+      mapper: (formData) => ({
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        status: formData.status,
+      })
+    });
+  });
+</script>
+{% endblock %}

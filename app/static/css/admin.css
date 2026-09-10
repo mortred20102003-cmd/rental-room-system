@@ -1,0 +1,138 @@
+.auth-body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(0, 194, 215, 0.09), rgba(13, 27, 42, 0.02));
+}
+
+.auth-shell {
+  width: min(92vw, 440px);
+}
+
+.auth-card {
+  padding: 28px 22px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+}
+
+.auth-form .primary-button {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.auth-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.page-section {
+  display: grid;
+  gap: 20px;
+}
+
+.panel-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.field-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.field-inline .filter-select {
+  min-width: 150px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ghost-button.danger {
+  color: var(--danger-text);
+  border-color: rgba(192, 57, 43, 0.2);
+}
+
+.muted-cell {
+  color: var(--muted);
+  text-align: center;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.room-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.room-card h3 {
+  margin: 0 0 8px;
+  letter-spacing: -0.04em;
+}
+
+.room-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.room-meta span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(13, 27, 42, 0.04);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.room-card .room-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .field-inline {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .field-inline .filter-select {
+    flex: 1;
+  }
+}

@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}AI Inspector — {{ app_name }}{% endblock %}
+{% block eyebrow %}<p class="section-title">INTELLIGENCE LAYER</p>{% endblock %}
+{% block heading %}Gemini AI Inspector{% endblock %}
+{% block subheading %}Raw prompts, structured outputs, and metadata from every AI call.{% endblock %}
+
+{% block content %}
+<div class="card border-l-4" style="border-left-color: #B8860B;">
+  <div class="flex items-start gap-4">
+    <div class="text-3xl">🤖</div>
+    <div class="flex-1">
+      <h3 class="text-base font-bold mb-1">AI layer coming soon</h3>
+      <p class="text-sm text-muted dark:text-slate-400">
+        This panel will display every Gemini 2.5 Flash call made by the backend —
+        raw prompts, JSON responses, and execution metadata — read straight from MongoDB.
+      </p>
+    </div>
+  </div>
+</div>
+
+<section class="card mt-6">
+  <h3 class="text-sm font-bold mb-3">Planned AI capabilities</h3>
+  <ul class="text-sm space-y-2 text-muted dark:text-slate-400">
+    <li class="flex items-start gap-2"><span class="text-accent font-bold">→</span>
+      <span><strong class="text-ink dark:text-slate-100">Tenant screening</strong> — score applicants against a listing.</span></li>
+    <li class="flex items-start gap-2"><span class="text-accent font-bold">→</span>
+      <span><strong class="text-ink dark:text-slate-100">Maintenance triage</strong> — auto-classify tickets by urgency.</span></li>
+    <li class="flex items-start gap-2"><span class="text-accent font-bold">→</span>
+      <span><strong class="text-ink dark:text-slate-100">Lease summaries</strong> — plain-English abstracts of contracts.</span></li>
+  </ul>
+</section>
+{% endblock %}

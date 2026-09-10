@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Maintenance{% endblock %}
+
+{% block content %}
+<section class="page-section">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">SERVICE</p>
+      <h1 class="page-title">Maintenance</h1>
+    </div>
+    <button class="primary-button js-open-modal" type="button" data-target="maintenance-modal">Create ticket</button>
+  </div>
+
+  <div class="kanban" id="maintenance-kanban">
+    <div class="kanban-column" data-status="open">
+      <div class="column-header">
+        <h3>Open</h3>
+        <span class="badge neutral">0</span>
+      </div>
+      <div class="task-list" id="tasks-open"></div>
+    </div>
+
+    <div class="kanban-column" data-status="in_progress">
+      <div class="column-header">
+        <h3>In progress</h3>
+        <span class="badge warning">0</span>
+      </div>
+      <div class="task-list" id="tasks-in_progress"></div>
+    </div>
+
+    <div class="kanban-column" data-status="resolved">
+      <div class="column-header">
+        <h3>Resolved</h3>
+        <span class="badge success">0</span>
+      </div>
+      <div class="task-list" id="tasks-resolved"></div>
+    </div>
+  </div>
+</section>
+
+<div class="modal" id="maintenance-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="maintenance-modal-title">
+    <div class="modal-header">
+      <h3 id="maintenance-modal-title">Create maintenance ticket</h3>
+      <button class="close-button" type="button" aria-label="Close dialog">×</button>
+    </div>
+    <form id="maintenance-form" class="property-form">
+      <div class="form-grid">
+        <div class="field full-span">
+          <label for="maintenance-title">Title</label>
+          <input id="maintenance-title" class="form-control" name="title" required />
+        </div>
+        <div class="field full-span">
+          <label for="maintenance-description">Description</label>
+          <textarea id="maintenance-description" class="form-control" name="description" rows="4" required></textarea>
+        </div>
+        <div class="field">
+          <label for="maintenance-priority">Priority</label>
+          <select id="maintenance-priority" class="form-control" name="priority">
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="maintenance-status">Status</label>
+          <select id="maintenance-status" class="form-control" name="status">
+            <option value="open">Open</option>
+            <option value="in_progress">In progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="ghost-button" type="button" data-close-modal="maintenance-modal">Cancel</button>
+        <button class="primary-button" type="submit">Save ticket</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/admin.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    admin.initMaintenanceBoard();
+  });
+</script>
+{% endblock %}

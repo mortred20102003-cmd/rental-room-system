@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — {{ app_name }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ink:    '#0D1B2A',
+            accent: '#00C2D7',
+            muted:  '#5A6B7E',
+            paper:  '#F5F7FA',
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background-color: #F5F7FA;
+      background-image:
+        linear-gradient(#E8EEF5 1px, transparent 1px),
+        linear-gradient(90deg, #E8EEF5 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      color: #5A6B7E;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: background 120ms, color 120ms;
+    }
+    .pw-toggle:hover {
+      background: #F1F5F9;
+      color: #0D1B2A;
+    }
+    .pw-toggle svg { width: 18px; height: 18px; }
+    .pw-toggle .eye-off { display: none; }
+    .pw-toggle.revealed .eye-on  { display: none; }
+    .pw-toggle.revealed .eye-off { display: block; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-ink">
+
+  <div class="w-full max-w-sm">
+
+    <!-- Brand -->
+    <div class="text-center mb-6">
+      <p class="text-[10px] tracking-[2px] text-muted font-semibold">ALL-IN-ONE BACKEND</p>
+      <h1 class="text-2xl font-bold mt-1">Rental Console</h1>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white rounded-2xl p-6 shadow-[0_1px_3px_rgba(13,27,42,0.06)] border border-slate-200">
+
+      <h2 class="text-lg font-bold mb-1">Sign in</h2>
+      <p class="text-sm text-muted mb-5">Owner access only.</p>
+
+      {% if request.query_params.get('error') %}
+      <div class="mb-4 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+        Incorrect username or password.
+      </div>
+      {% endif %}
+
+      <form method="post" action="/login" class="space-y-3">
+
+        <!-- Username -->
+        <div>
+          <label class="block text-xs font-semibold text-muted mb-1">Username</label>
+          <input name="username" required autofocus autocomplete="username"
+            class="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-[#00C2D7]
+                   focus:ring-2 focus:ring-[#00C2D7]/20 outline-none text-sm" />
+        </div>
+
+        <!-- Password with toggle -->
+        <div>
+          <label class="block text-xs font-semibold text-muted mb-1">Password</label>
+          <div class="pw-wrap">
+            <input id="password" name="password" type="password" required
+              autocomplete="current-password"
+              class="w-full px-3 py-2 pr-11 rounded-lg border border-slate-200
+                     focus:border-[#00C2D7] focus:ring-2 focus:ring-[#00C2D7]/20
+                     outline-none text-sm" />
+
+            <button type="button" id="toggle-password"
+              class="pw-toggle" aria-label="Show password"
+              aria-pressed="false" title="Show password">
+              <!-- Eye (visible) -->
+              <svg class="eye-on" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <!-- Eye-off (hidden) -->
+              <svg class="eye-off" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full mt-3 bg-ink text-white rounded-lg py-2.5 font-semibold text-sm
+                 hover:bg-[#16263A] active:translate-y-px transition">
+          Sign in →
+        </button>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-xs text-muted mt-4">
+      <a href="/" class="hover:text-accent">← Back to public dashboard</a>
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      const input  = document.getElementById('password');
+      const toggle = document.getElementById('toggle-password');
+      if (!input || !toggle) return;
+
+      toggle.addEventListener('click', () => {
+        const reveal = input.type === 'password';
+        input.type = reveal ? 'text' : 'password';
+        toggle.classList.toggle('revealed', reveal);
+        toggle.setAttribute('aria-pressed', String(reveal));
+        toggle.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+        toggle.setAttribute('title',      reveal ? 'Hide password' : 'Show password');
+      });
+
+      // Optional: Alt+P shortcut to toggle focus
+      document.addEventListener('keydown', (e) => {
+        if (e.altKey && e.key.toLowerCase() === 'p') {
+          e.preventDefault();
+          toggle.click();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

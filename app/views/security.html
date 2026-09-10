@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block title %}Security — {{ app_name }}{% endblock %}
+{% block eyebrow %}<p class="section-title">ACCESS CONTROL</p>{% endblock %}
+{% block heading %}Admin Security{% endblock %}
+{% block subheading %}Manage users, roles, and account state.{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('error') == 'self' %}
+<div class="card border-l-4 mb-5" style="border-left-color: #C0392B;">
+  <p class="text-sm"><strong class="text-red-600">Action blocked.</strong>
+    You cannot demote or disable your own account.</p>
+</div>
+{% endif %}
+
+<section class="card">
+  <h2 class="text-lg font-bold mb-4">Users ({{ users|length }})</h2>
+  {% if users %}
+  <table class="data-table">
+    <thead><tr>
+      <th>ID</th><th>Username</th><th>Email</th>
+      <th>Role</th><th>Status</th><th class="text-right">Actions</th>
+    </tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td class="text-muted dark:text-slate-400">#{{ u.id }}</td>
+        <td class="font-semibold">{{ u.username }}
+          {% if u.id == current_user.id %}
+          <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-muted">YOU</span>
+          {% endif %}
+        </td>
+        <td>{{ u.email }}</td>
+        <td>{% if u.is_owner %}<span class="chip">Owner</span>
+            {% else %}<span class="chip offline">User</span>{% endif %}</td>
+        <td>{% if u.is_active %}<span class="chip">Active</span>
+            {% else %}<span class="chip offline">Disabled</span>{% endif %}</td>
+        <td class="text-right">
+          {% if u.id != current_user.id %}
+          <form method="post" action="/console/security/user/{{ u.id }}/toggle-owner" class="inline">
+            <button class="btn btn-ghost btn-sm">{% if u.is_owner %}Demote{% else %}Promote{% endif %}</button>
+          </form>
+          <form method="post" action="/console/security/user/{{ u.id }}/toggle-active" class="inline ml-1">
+            <button class="btn {% if u.is_active %}btn-danger{% else %}btn-primary{% endif %} btn-sm">
+              {% if u.is_active %}Disable{% else %}Enable{% endif %}
+            </button>
+          </form>
+          {% else %}<span class="text-xs text-muted dark:text-slate-500">—</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No users yet.</p>
+  {% endif %}
+</section>
+
+<section class="card mt-6">
+  <h3 class="text-sm font-bold mb-3">Session info</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+    <div><p class="card-label">Signed in as</p><p class="font-semibold mt-1">{{ current_user.username }}</p></div>
+    <div><p class="card-label">Role</p>
+      <p class="font-semibold mt-1">{{ "Owner / SuperAdmin" if current_user.is_owner else "User" }}</p></div>
+    <div><p class="card-label">Account ID</p><p class="font-semibold mt-1">#{{ current_user.id }}</p></div>
+  </div>
+</section>
+{% endblock %}

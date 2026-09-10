@@ -1,25 +1,41 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from app.models.payment import Payment
+from app.models.lease import Lease
 from app.schemas.payment import PaymentCreate, PaymentUpdate
 from typing import List, Optional
 from datetime import date
 
 class PaymentService:
-    def __init__(self, db: Session): self.db = db
+    def __init__(self, db: Session):
+        self.db = db
 
     def get(self, pid: int) -> Optional[Payment]:
         return self.db.query(Payment).filter(Payment.id == pid).first()
 
-    def list(self, status: Optional[str] = None, lease_id: Optional[int] = None,
-             skip=0, limit=100) -> List[Payment]:
+    def list(self, status=None, lease_id=None, skip=0, limit=100) -> List[Payment]:
         q = self.db.query(Payment)
         if status: q = q.filter(Payment.status == status)
         if lease_id: q = q.filter(Payment.lease_id == lease_id)
         return q.offset(skip).limit(limit).all()
 
     def create(self, data: PaymentCreate) -> Payment:
+        # Validate lease exists
+        lease = self.db.query(Lease).filter(Lease.id == data.lease_id).first()
+        if not lease:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Lease {data.lease_id} does not exist. Create the lease first."
+            )
+
+        if data.amount <= 0:
+            raise HTTPException(400, "amount must be greater than 0")
+
         p = Payment(**data.model_dump(), status="pending")
-        self.db.add(p); self.db.commit(); self.db.refresh(p); return p
+        self.db.add(p)
+        self.db.commit()
+        self.db.refresh(p)
+        return p
 
     def update(self, pid: int, data: PaymentUpdate) -> Optional[Payment]:
         p = self.get(pid)

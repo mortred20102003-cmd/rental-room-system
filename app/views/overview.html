@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+
+{% block title %}System Overview — {{ app_name }}{% endblock %}
+{% block eyebrow %}<p class="section-title">RUNTIME PULSE</p>{% endblock %}
+{% block heading %}System overview{% endblock %}
+{% block subheading %}Live service availability and persisted record counts.{% endblock %}
+
+{% block content %}
+<div id="status-chips" class="flex flex-wrap gap-2.5 mb-6">
+  <span class="chip checking" id="chip-pg">Checking PostgreSQL…</span>
+  <span class="chip checking" id="chip-mongo">Checking MongoDB…</span>
+</div>
+
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <div class="card">
+    <p class="card-label">Total Properties</p>
+    <p class="card-value" id="m-properties">0</p>
+    <div class="bar"><div class="bar-fill" id="b-properties"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Total Rooms</p>
+    <p class="card-value" id="m-rooms">0</p>
+    <div class="bar"><div class="bar-fill" id="b-rooms"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Occupied / Vacant</p>
+    <p class="card-value">
+      <span id="m-occupied">0</span>
+      <span class="text-slate-300 dark:text-slate-600 mx-1 font-normal">/</span>
+      <span id="m-vacant">0</span>
+    </p>
+    <div class="bar"><div class="bar-fill" id="b-occupied"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Active Tenants</p>
+    <p class="card-value" id="m-tenants">0</p>
+    <div class="bar"><div class="bar-fill" id="b-tenants"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Active Leases</p>
+    <p class="card-value" id="m-leases">0</p>
+    <div class="bar"><div class="bar-fill" id="b-leases"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Pending Payments</p>
+    <p class="card-value" id="m-pending">0</p>
+    <div class="bar"><div class="bar-fill" id="b-pending"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Open Maintenance</p>
+    <p class="card-value" id="m-maint">0</p>
+    <div class="bar"><div class="bar-fill" id="b-maint"></div></div>
+  </div>
+  <div class="card">
+    <p class="card-label">Users</p>
+    <p class="card-value" id="m-users">0</p>
+    <div class="bar"><div class="bar-fill" id="b-users"></div></div>
+  </div>
+</section>
+
+<section class="card mt-6">
+  <h2 class="text-lg font-bold mb-1">Quick actions</h2>
+  <p class="text-sm text-muted dark:text-slate-400 mb-4">Jump straight into the tools you use most.</p>
+  <div class="flex flex-wrap gap-2">
+    <a href="/console/database" class="btn btn-primary">🗄️ Manage Data</a>
+    <a href="/docs" target="_blank" class="btn btn-ghost">📘 Open API Docs</a>
+    <a href="/console/security" class="btn btn-ghost">🔐 Admin Security</a>
+    <a href="/" target="_blank" class="btn btn-ghost">🌐 Public Dashboard</a>
+  </div>
+</section>
+
+<section class="card mt-6">
+  <h2 class="text-lg font-bold mb-4">Service topology</h2>
+  <div class="space-y-3">
+    <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4">
+      <span class="text-[11px] font-bold tracking-widest text-accent">HTTP</span>
+      <h3 class="text-base font-bold mt-1">FastAPI gateway</h3>
+      <p class="text-xs text-muted dark:text-slate-400">Routes, validation, auth, Jinja2 console</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4">
+      <span class="text-[11px] font-bold tracking-widest text-accent">SQL</span>
+      <h3 class="text-base font-bold mt-1">PostgreSQL</h3>
+      <p class="text-xs text-muted dark:text-slate-400">Properties, rooms, tenants, leases, payments</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4">
+      <span class="text-[11px] font-bold tracking-widest text-accent">DOC</span>
+      <h3 class="text-base font-bold mt-1">MongoDB</h3>
+      <p class="text-xs text-muted dark:text-slate-400">Activity logs, room photos, AI telemetry</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadOverview() {
+  const pg = document.getElementById('chip-pg');
+  const mg = document.getElementById('chip-mongo');
+  pg.className = 'chip checking'; pg.textContent = 'Checking PostgreSQL…';
+  mg.className = 'chip checking'; mg.textContent = 'Checking MongoDB…';
+  try {
+    const res = await fetch('/system/overview');
+    const data = await res.json();
+    const s = data.services, m = data.metrics;
+
+    pg.className = 'chip' + (s.postgresql ? '' : ' offline');
+    pg.textContent = `PostgreSQL ${s.postgresql ? 'online' : 'offline'}`;
+    mg.className = 'chip' + (s.mongodb ? '' : ' offline');
+    mg.textContent = `MongoDB ${s.mongodb ? 'online' : 'offline'}`;
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('m-properties', m.total_properties);
+    set('m-rooms', m.total_rooms);
+    set('m-occupied', m.occupied_rooms);
+    set('m-vacant', m.vacant_rooms);
+    set('m-tenants', m.total_tenants);
+    set('m-leases', m.active_leases);
+    set('m-pending', m.pending_payments);
+    set('m-maint', m.open_maintenance);
+    set('m-users', m.users);
+
+    const max = Math.max(m.total_properties, m.total_rooms, m.occupied_rooms,
+      m.total_tenants, m.active_leases, m.pending_payments,
+      m.open_maintenance, m.users, 1);
+    const bar = (id, v) => { const el = document.getElementById(id); if (el) el.style.width = `${(v/max)*100}%`; };
+    bar('b-properties', m.total_properties);
+    bar('b-rooms', m.total_rooms);
+    bar('b-occupied', m.occupied_rooms);
+    bar('b-tenants', m.total_tenants);
+    bar('b-leases', m.active_leases);
+    bar('b-pending', m.pending_payments);
+    bar('b-maint', m.open_maintenance);
+    bar('b-users', m.users);
+  } catch (e) {
+    pg.className = 'chip offline'; pg.textContent = 'PostgreSQL offline';
+    mg.className = 'chip offline'; mg.textContent = 'MongoDB offline';
+  }
+}
+loadOverview();
+setInterval(loadOverview, 15000);
+</script>
+{% endblock %}
