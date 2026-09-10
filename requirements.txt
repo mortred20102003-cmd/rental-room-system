@@ -1,13 +1,30 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-pydantic==2.5.0
-pydantic-settings==2.1.0
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+starlette==0.41.3
+
+# Database
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+alembic==1.14.0
+
+# Validation
+pydantic==2.10.4
+pydantic-settings==2.6.1
+email-validator==2.2.0
+
+# Auth
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
-motor==3.3.2
-pymongo==4.6.0
-jinja2==3.1.2
-email-validator==2.1.0
+bcrypt==4.0.1
+python-multipart==0.0.20
+
+# Mongo
+motor==3.6.0
+pymongo==4.9.2
+
+# Templating
+jinja2==3.1.4
+
+# AI
+google-genai>=0.3.0

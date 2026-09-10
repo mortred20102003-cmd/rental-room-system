@@ -6,6 +6,7 @@
 {% block subheading %}Inspect, create, and delete records across your relational tables.{% endblock %}
 
 {% block content %}
+
 <div class="flex flex-wrap gap-2 mb-5" id="tabs">
   <button class="tab-btn btn btn-primary" data-tab="properties">Properties ({{ properties|length }})</button>
   <button class="tab-btn btn btn-ghost"   data-tab="rooms">Rooms ({{ rooms|length }})</button>
@@ -14,6 +15,7 @@
   <button class="tab-btn btn btn-ghost"   data-tab="payments">Payments ({{ payments|length }})</button>
 </div>
 
+<!-- ============ PROPERTIES ============ -->
 <section class="tab-panel card" data-panel="properties">
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-bold">Properties</h2>
@@ -21,7 +23,9 @@
   </div>
   {% if properties %}
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Name</th><th>Address</th><th>City</th><th class="text-right">Actions</th></tr></thead>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Address</th><th>City</th><th class="text-right">Actions</th></tr>
+    </thead>
     <tbody>
     {% for p in properties %}
       <tr>
@@ -44,6 +48,7 @@
   {% endif %}
 </section>
 
+<!-- ============ ROOMS ============ -->
 <section class="tab-panel card hidden" data-panel="rooms">
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-bold">Rooms</h2>
@@ -51,7 +56,9 @@
   </div>
   {% if rooms %}
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Room</th><th>Property</th><th>Rent</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+    <thead>
+      <tr><th>ID</th><th>Room</th><th>Property</th><th>Rent</th><th>Status</th><th class="text-right">Actions</th></tr>
+    </thead>
     <tbody>
     {% for r in rooms %}
       <tr>
@@ -59,8 +66,22 @@
         <td class="font-semibold">{{ r.room_number }}</td>
         <td>#{{ r.property_id }}</td>
         <td>₱{{ "%.0f"|format(r.monthly_rent) }}</td>
-        <td>{% if r.is_occupied %}<span class="chip">Occupied</span>{% else %}<span class="chip offline">Vacant</span>{% endif %}</td>
+        <td>
+          {% if r.is_occupied %}
+          <span class="chip">Occupied</span>
+          {% else %}
+          <span class="chip offline">Vacant</span>
+          {% endif %}
+        </td>
         <td class="text-right">
+          <button class="btn btn-ghost btn-sm"
+                  data-room-id="{{ r.id }}"
+                  data-room-num="{{ r.room_number }}"
+                  data-room-rent="{{ r.monthly_rent }}"
+                  data-room-dep="{{ r.deposit_amount or 0 }}"
+                  onclick="openScreenModal(this)">
+            👤 Screen
+          </button>
           <form method="post" action="/console/database/room/{{ r.id }}/delete"
                 onsubmit="return confirm('Delete room?')" class="inline">
             <button class="btn btn-danger btn-sm">Delete</button>
@@ -75,6 +96,7 @@
   {% endif %}
 </section>
 
+<!-- ============ TENANTS ============ -->
 <section class="tab-panel card hidden" data-panel="tenants">
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-bold">Tenants</h2>
@@ -82,7 +104,9 @@
   </div>
   {% if tenants %}
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th class="text-right">Actions</th></tr></thead>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th class="text-right">Actions</th></tr>
+    </thead>
     <tbody>
     {% for t in tenants %}
       <tr>
@@ -105,19 +129,30 @@
   {% endif %}
 </section>
 
+<!-- ============ LEASES ============ -->
 <section class="tab-panel card hidden" data-panel="leases">
   <h2 class="text-lg font-bold mb-4">Leases</h2>
   {% if leases %}
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Room</th><th>Tenant</th><th>Start</th><th>End</th><th>Rent</th><th>Status</th></tr></thead>
+    <thead>
+      <tr><th>ID</th><th>Room</th><th>Tenant</th><th>Start</th><th>End</th><th>Rent</th><th>Status</th></tr>
+    </thead>
     <tbody>
     {% for l in leases %}
       <tr>
         <td class="text-muted dark:text-slate-400">#{{ l.id }}</td>
-        <td>#{{ l.room_id }}</td><td>#{{ l.tenant_id }}</td>
-        <td>{{ l.start_date }}</td><td>{{ l.end_date }}</td>
+        <td>#{{ l.room_id }}</td>
+        <td>#{{ l.tenant_id }}</td>
+        <td>{{ l.start_date }}</td>
+        <td>{{ l.end_date }}</td>
         <td>₱{{ "%.0f"|format(l.monthly_rent) }}</td>
-        <td>{% if l.status == "active" %}<span class="chip">Active</span>{% else %}<span class="chip offline">{{ l.status }}</span>{% endif %}</td>
+        <td>
+          {% if l.status == "active" %}
+          <span class="chip">Active</span>
+          {% else %}
+          <span class="chip offline">{{ l.status }}</span>
+          {% endif %}
+        </td>
       </tr>
     {% endfor %}
     </tbody>
@@ -127,11 +162,14 @@
   {% endif %}
 </section>
 
+<!-- ============ PAYMENTS ============ -->
 <section class="tab-panel card hidden" data-panel="payments">
   <h2 class="text-lg font-bold mb-4">Payments</h2>
   {% if payments %}
   <table class="data-table">
-    <thead><tr><th>ID</th><th>Lease</th><th>Amount</th><th>Due</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+    <thead>
+      <tr><th>ID</th><th>Lease</th><th>Amount</th><th>Due</th><th>Status</th><th class="text-right">Actions</th></tr>
+    </thead>
     <tbody>
     {% for p in payments %}
       <tr>
@@ -139,9 +177,15 @@
         <td>#{{ p.lease_id }}</td>
         <td>₱{{ "%.0f"|format(p.amount) }}</td>
         <td>{{ p.due_date or "—" }}</td>
-        <td>{% if p.status == "paid" %}<span class="chip">Paid</span>
-            {% elif p.status == "overdue" %}<span class="chip offline">Overdue</span>
-            {% else %}<span class="chip checking">Pending</span>{% endif %}</td>
+        <td>
+          {% if p.status == "paid" %}
+          <span class="chip">Paid</span>
+          {% elif p.status == "overdue" %}
+          <span class="chip offline">Overdue</span>
+          {% else %}
+          <span class="chip checking">Pending</span>
+          {% endif %}
+        </td>
         <td class="text-right">
           {% if p.status != "paid" %}
           <form method="post" action="/console/database/payment/{{ p.id }}/mark-paid" class="inline">
@@ -158,6 +202,9 @@
   {% endif %}
 </section>
 
+<!-- ============ MODALS ============ -->
+
+<!-- New Property -->
 <div id="modal-property" class="modal-backdrop hidden">
   <div class="modal">
     <h3 class="text-lg font-bold mb-4">New Property</h3>
@@ -173,13 +220,16 @@
   </div>
 </div>
 
+<!-- New Room -->
 <div id="modal-room" class="modal-backdrop hidden">
   <div class="modal">
     <h3 class="text-lg font-bold mb-4">New Room</h3>
     <form method="post" action="/console/database/room/create" class="space-y-3">
       <select class="select" name="property_id" required>
         <option value="">Select property…</option>
-        {% for p in properties %}<option value="{{ p.id }}">#{{ p.id }} — {{ p.name }}</option>{% endfor %}
+        {% for p in properties %}
+        <option value="{{ p.id }}">#{{ p.id }} — {{ p.name }}</option>
+        {% endfor %}
       </select>
       <input class="input" name="room_number" placeholder="Room number" required />
       <input class="input" name="monthly_rent" type="number" step="0.01" placeholder="Monthly rent" required />
@@ -193,6 +243,7 @@
   </div>
 </div>
 
+<!-- New Tenant -->
 <div id="modal-tenant" class="modal-backdrop hidden">
   <div class="modal">
     <h3 class="text-lg font-bold mb-4">New Tenant</h3>
@@ -207,30 +258,235 @@
     </form>
   </div>
 </div>
+
+<!-- 👤 Screen Applicant Modal -->
+<div id="modal-screen" class="modal-backdrop hidden">
+  <div class="modal" style="max-width: 560px;">
+    <h3 class="text-lg font-bold mb-1">Screen Applicant</h3>
+    <p class="text-xs text-muted dark:text-slate-400 mb-4">
+      Room <span id="screen-room-label">—</span> ·
+      ₱<span id="screen-room-rent">—</span>/mo ·
+      Deposit ₱<span id="screen-room-dep">—</span>
+    </p>
+
+    <!-- Form view -->
+    <div id="screen-form">
+      <div class="space-y-3">
+        <input id="screen-name" class="input" placeholder="Full name" />
+        <input id="screen-income" class="input" type="number" placeholder="Monthly income" value="45000" />
+        <input id="screen-emp" class="input" placeholder="Employment"
+               value="Full-time, 3 years at current employer" />
+        <input id="screen-refs" class="input" placeholder="References (comma separated)"
+               value="Former landlord: Maria Santos" />
+        <textarea id="screen-notes" class="input" rows="2" placeholder="Notes">Non-smoker, no pets</textarea>
+      </div>
+
+      <div class="flex gap-2 pt-4">
+        <button id="screen-submit" class="btn btn-primary flex-1" type="button">
+          🛠️ Run AI Screening
+        </button>
+        <button class="btn btn-ghost" type="button" onclick="closeModal('modal-screen')">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Result view -->
+    <div id="screen-result" class="hidden">
+      <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 mb-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div id="screen-score-badge"
+               class="text-2xl font-extrabold px-3 py-1 rounded-lg">—</div>
+          <div>
+            <p class="text-xs text-muted dark:text-slate-400">Verdict</p>
+            <p id="screen-verdict" class="font-bold">—</p>
+          </div>
+        </div>
+        <div id="screen-summary" class="text-sm mt-2 text-ink dark:text-slate-200">—</div>
+      </div>
+
+      <details class="text-xs mb-3">
+        <summary class="cursor-pointer font-semibold">Strengths &amp; concerns</summary>
+        <div class="mt-2 grid grid-cols-2 gap-3">
+          <div>
+            <p class="card-label mb-1 text-emerald-600">Strengths</p>
+            <ul id="screen-strengths" class="list-disc list-inside space-y-1"></ul>
+          </div>
+          <div>
+            <p class="card-label mb-1 text-amber-600">Concerns</p>
+            <ul id="screen-concerns" class="list-disc list-inside space-y-1"></ul>
+          </div>
+        </div>
+      </details>
+
+      <div class="flex gap-2">
+        <button class="btn btn-ghost flex-1" type="button" onclick="resetScreen()">
+          ← Screen another
+        </button>
+        <button class="btn btn-primary" type="button" onclick="closeModal('modal-screen')">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tab = btn.dataset.tab;
-    document.querySelectorAll('.tab-btn').forEach(b => {
+/* ============================================================
+   Database page — tabs, modals, AI screening
+   ============================================================ */
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var tab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
       b.classList.toggle('btn-primary', b.dataset.tab === tab);
-      b.classList.toggle('btn-ghost', b.dataset.tab !== tab);
+      b.classList.toggle('btn-ghost',   b.dataset.tab !== tab);
     });
-    document.querySelectorAll('.tab-panel').forEach(p => {
+    document.querySelectorAll('.tab-panel').forEach(function (p) {
       p.classList.toggle('hidden', p.dataset.panel !== tab);
     });
   });
 });
-function openModal(id)  { const m = document.getElementById(id); if (m) m.classList.remove('hidden'); }
-function closeModal(id) { const m = document.getElementById(id); if (m) m.classList.add('hidden'); }
-document.querySelectorAll('.modal-backdrop').forEach(b => {
-  b.addEventListener('click', e => { if (e.target === b) closeModal(b.id); });
+
+// ---------- Modals ----------
+function openModal(id) {
+  var m = document.getElementById(id);
+  if (m) m.classList.remove('hidden');
+}
+function closeModal(id) {
+  var m = document.getElementById(id);
+  if (m) m.classList.add('hidden');
+}
+document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+  backdrop.addEventListener('click', function (e) {
+    if (e.target === backdrop) closeModal(backdrop.id);
+  });
 });
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape')
-    document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(m => closeModal(m.id));
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-backdrop:not(.hidden)').forEach(function (m) {
+      closeModal(m.id);
+    });
+  }
 });
+
+// ---------- 👤 AI Screening ----------
+var _screenRoom = null;
+
+function openScreenModal(btn) {
+  _screenRoom = {
+    id:   btn.dataset.roomId,
+    num:  btn.dataset.roomNum,
+    rent: btn.dataset.roomRent,
+    dep:  btn.dataset.roomDep
+  };
+  document.getElementById('screen-room-label').textContent = _screenRoom.num;
+  document.getElementById('screen-room-rent').textContent  = _screenRoom.rent;
+  document.getElementById('screen-room-dep').textContent   = _screenRoom.dep;
+
+  // Reset to form view
+  document.getElementById('screen-form').classList.remove('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+
+  openModal('modal-screen');
+}
+
+function resetScreen() {
+  document.getElementById('screen-form').classList.remove('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/[<>&"]/g, function (c) {
+      return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];
+    });
+}
+
+function showScreenResult(r) {
+  document.getElementById('screen-form').classList.add('hidden');
+  document.getElementById('screen-result').classList.remove('hidden');
+
+  var score = (r.score != null) ? r.score : 0;
+  var badge = document.getElementById('screen-score-badge');
+  badge.textContent = score;
+  if (score >= 75) {
+    badge.style.background = '#E6F7EF'; badge.style.color = '#1A7F4B';
+  } else if (score >= 50) {
+    badge.style.background = '#FDF6E3'; badge.style.color = '#B8860B';
+  } else {
+    badge.style.background = '#FDECEC'; badge.style.color = '#C0392B';
+  }
+
+  var verdictMap = { approve: '✅ Approve', review: '⚠️ Review', reject: '❌ Reject' };
+  document.getElementById('screen-verdict').textContent =
+    verdictMap[r.verdict] || r.verdict || '—';
+  document.getElementById('screen-summary').textContent = r.summary || '—';
+
+  var strengthsEl = document.getElementById('screen-strengths');
+  var concernsEl  = document.getElementById('screen-concerns');
+
+  if (r.strengths && r.strengths.length) {
+    strengthsEl.innerHTML = r.strengths.map(function (s) {
+      return '<li>' + escapeHtml(s) + '</li>';
+    }).join('');
+  } else {
+    strengthsEl.innerHTML = '<li class="text-muted">None listed</li>';
+  }
+
+  if (r.concerns && r.concerns.length) {
+    concernsEl.innerHTML = r.concerns.map(function (s) {
+      return '<li>' + escapeHtml(s) + '</li>';
+    }).join('');
+  } else {
+    concernsEl.innerHTML = '<li class="text-muted">None listed</li>';
+  }
+}
+
+async function submitScreen() {
+  var payload = {
+    full_name:      document.getElementById('screen-name').value.trim() || 'Unnamed Applicant',
+    monthly_income: Number(document.getElementById('screen-income').value) || 0,
+    employment:     document.getElementById('screen-emp').value.trim(),
+    references:     document.getElementById('screen-refs').value
+                      .split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+    notes:          document.getElementById('screen-notes').value.trim()
+  };
+
+  var btn = document.getElementById('screen-submit');
+  var original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '🛠️ Calling Gemini…';
+
+  try {
+    var res = await fetch('/api/v1/ai/tenant/screen?room_id=' + _screenRoom.id, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      var err = await res.json().catch(function () { return {}; });
+      if (window.toast) toast('Screening failed: ' + (err.detail || res.status), 'error');
+      return;
+    }
+
+    var data = await res.json();
+    showScreenResult(data);
+    if (window.toast) toast('Screening complete', 'success');
+  } catch (e) {
+    if (window.toast) toast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
+document.getElementById('screen-submit').addEventListener('click', submitScreen);
 </script>
 {% endblock %}

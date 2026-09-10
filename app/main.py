@@ -1,26 +1,30 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.database import engine, Base, SessionLocal, mongodb_client
-from app.core.security import get_password_hash
+from app.core.database import engine, Base, SessionLocal, mongodb_client, get_db
+from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User
 
-# Existing API routes
+# ---------- API routers ----------
 from app.routes import (
     auth, users, properties, rooms, tenants,
-    leases, payments, maintenance, system,
+    leases, payments, maintenance, system, ai,
 )
-# New console route
+# ---------- Console router ----------
 from app.routes import console
 
-# Create tables
+
+# ---------- Create tables on import ----------
 Base.metadata.create_all(bind=engine)
 
 
+# ---------- Seed superAdmin owner ----------
 def seed_owner():
     db = SessionLocal()
     try:
@@ -39,6 +43,7 @@ def seed_owner():
         db.close()
 
 
+# ---------- Lifespan ----------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_owner()
@@ -46,6 +51,7 @@ async def lifespan(app: FastAPI):
     mongodb_client.close()
 
 
+# ---------- App ----------
 app = FastAPI(
     title=settings.app_name,
     debug=settings.debug,
@@ -60,27 +66,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static + templates
+# ---------- Static + Templates ----------
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="app/templates")   # used for / and /login
+console_templates = Jinja2Templates(directory="app/views")  # used by console router
 
-# ---------- Existing API routes ----------
-app.include_router(system.router)  # public: /system/overview, /system/health
-app.include_router(auth.router, prefix=settings.api_v1_prefix)
-app.include_router(users.router, prefix=settings.api_v1_prefix)
-app.include_router(properties.router, prefix=settings.api_v1_prefix)
-app.include_router(rooms.router, prefix=settings.api_v1_prefix)
-app.include_router(tenants.router, prefix=settings.api_v1_prefix)
-app.include_router(leases.router, prefix=settings.api_v1_prefix)
-app.include_router(payments.router, prefix=settings.api_v1_prefix)
-app.include_router(maintenance.router, prefix=settings.api_v1_prefix)
 
-# ---------- Console routes ----------
-app.include_router(console.router)
+# ---------- API routers ----------
+app.include_router(system.router)                                        # /system/*
+app.include_router(auth.router,        prefix=settings.api_v1_prefix)    # /api/v1/auth/*
+app.include_router(users.router,       prefix=settings.api_v1_prefix)    # /api/v1/users/*
+app.include_router(properties.router,  prefix=settings.api_v1_prefix)    # /api/v1/properties/*
+app.include_router(rooms.router,       prefix=settings.api_v1_prefix)    # /api/v1/rooms/*
+app.include_router(tenants.router,     prefix=settings.api_v1_prefix)    # /api/v1/tenants/*
+app.include_router(leases.router,      prefix=settings.api_v1_prefix)    # /api/v1/leases/*
+app.include_router(payments.router,    prefix=settings.api_v1_prefix)    # /api/v1/payments/*
+app.include_router(maintenance.router, prefix=settings.api_v1_prefix)    # /api/v1/maintenance/*
+app.include_router(ai.router)                                            # /api/v1/ai/*
+
+# ---------- Console ----------
+app.include_router(console.router)                                       # /console/*
 
 
 # ---------- Public dashboard ----------
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -89,14 +98,7 @@ def dashboard(request: Request):
     })
 
 
-# ---------- HTML login form (cookie auth) ----------
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi import Form, Depends
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.core.security import verify_password, create_access_token
-
-
+# ---------- HTML login (cookie auth) ----------
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {

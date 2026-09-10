@@ -6,28 +6,226 @@
 {% block subheading %}Raw prompts, structured outputs, and metadata from every AI call.{% endblock %}
 
 {% block content %}
-<div class="card border-l-4" style="border-left-color: #B8860B;">
-  <div class="flex items-start gap-4">
-    <div class="text-3xl">🤖</div>
-    <div class="flex-1">
-      <h3 class="text-base font-bold mb-1">AI layer coming soon</h3>
-      <p class="text-sm text-muted dark:text-slate-400">
-        This panel will display every Gemini 2.5 Flash call made by the backend —
-        raw prompts, JSON responses, and execution metadata — read straight from MongoDB.
-      </p>
-    </div>
-  </div>
+
+<div class="card border-l-4 mb-5" style="border-left-color: #00C2D7;">
+  <p class="text-sm">
+    <strong>Status:</strong> <span id="ai-status-text">checking…</span>
+  </p>
 </div>
 
-<section class="card mt-6">
-  <h3 class="text-sm font-bold mb-3">Planned AI capabilities</h3>
-  <ul class="text-sm space-y-2 text-muted dark:text-slate-400">
-    <li class="flex items-start gap-2"><span class="text-accent font-bold">→</span>
-      <span><strong class="text-ink dark:text-slate-100">Tenant screening</strong> — score applicants against a listing.</span></li>
-    <li class="flex items-start gap-2"><span class="text-accent font-bold">→</span>
-      <span><strong class="text-ink dark:text-slate-100">Maintenance triage</strong> — auto-classify tickets by urgency.</span></li>
-    <li class="flex items-start gap-2"><span class="text-accent font-bold">→</span>
-      <span><strong class="text-ink dark:text-slate-100">Lease summaries</strong> — plain-English abstracts of contracts.</span></li>
-  </ul>
+<section class="card mb-5">
+  <h2 class="text-lg font-bold mb-1">Test the AI</h2>
+  <p class="text-sm text-muted dark:text-slate-400 mb-4">
+    Run a live Gemini 3.6 Flash call. Every request is logged below.
+  </p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 border border-slate-200 dark:border-slate-700">
+      <h3 class="font-bold text-sm mb-2">🛠️ Classify Maintenance</h3>
+      <input id="maint-title" class="input mb-2" placeholder="Title"
+             value="Leaking faucet in bathroom" />
+      <textarea id="maint-desc" class="input mb-3" rows="2"
+                placeholder="Description">Water dripping continuously for two days</textarea>
+      <button id="btn-classify" class="btn btn-primary w-full" type="button">
+        Classify
+      </button>
+    </div>
+
+    <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 border border-slate-200 dark:border-slate-700">
+      <h3 class="font-bold text-sm mb-2">👤 Screen Tenant</h3>
+      <input id="tenant-name" class="input mb-2" placeholder="Full name"
+             value="Juan Dela Cruz" />
+      <input id="tenant-income" class="input mb-2" type="number"
+             placeholder="Monthly income" value="45000" />
+      <input id="tenant-emp" class="input mb-3" placeholder="Employment"
+             value="Full-time, 3 years at BPO" />
+      <button id="btn-screen" class="btn btn-primary w-full" type="button">
+        Screen
+      </button>
+    </div>
+  </div>
+
+  <div id="ai-output" class="hidden mt-4">
+    <p class="card-label mb-2">Latest result</p>
+    <pre id="ai-output-pre" class="bg-slate-50 dark:bg-[#0F1B2D] p-4 rounded-xl text-xs overflow-x-auto
+                                  border border-slate-200 dark:border-slate-700 whitespace-pre-wrap"></pre>
+  </div>
 </section>
+
+<section class="card">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold">Recent calls</h2>
+    <select id="filter-kind" class="select w-auto" onchange="loadLogs()">
+      <option value="">All kinds</option>
+      <option value="tenant_screening">Tenant screening</option>
+      <option value="maintenance_classify">Maintenance triage</option>
+      <option value="lease_summary">Lease summary</option>
+    </select>
+  </div>
+
+  <div id="logs-container">
+    <p class="text-sm text-muted dark:text-slate-400 py-6 text-center">Loading…</p>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.addEventListener('DOMContentLoaded', function () {
+  const $ = id => document.getElementById(id);
+
+  function setOutput(obj) {
+    $('ai-output').classList.remove('hidden');
+    $('ai-output-pre').textContent =
+      typeof obj === 'string' ? obj : JSON.stringify(obj, null, 2);
+  }
+
+  async function checkStatus() {
+    const el = $('ai-status-text');
+    try {
+      const res = await fetch('/api/v1/ai/logs?limit=1');
+      if (res.status === 200) {
+        el.textContent = 'AI configured and reachable ✅';
+      } else if (res.status === 401) {
+        el.textContent = 'Session expired — please reload /login';
+      } else if (res.status === 503) {
+        el.textContent = 'GEMINI_API_KEY not set in .env';
+      } else {
+        el.textContent = 'Unexpected status ' + res.status;
+      }
+    } catch (e) {
+      el.textContent = 'Cannot reach the API';
+    }
+  }
+
+  async function classifyMaintenance() {
+    const title = $('maint-title').value.trim();
+    const description = $('maint-desc').value.trim();
+    if (!title) { setOutput({ error: 'Title is required' }); return; }
+
+    const btn = $('btn-classify');
+    btn.disabled = true;
+    btn.textContent = 'Calling Gemini…';
+    setOutput({ status: 'calling Gemini…' });
+
+    try {
+      const res = await fetch('/api/v1/ai/maintenance/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title, description: description })
+      });
+      const data = await res.json();
+      setOutput(data);
+      loadLogs();
+    } catch (e) {
+      setOutput({ error: String(e) });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Classify';
+    }
+  }
+
+  async function screenTenant() {
+    const roomsRes = await fetch('/api/v1/rooms/');
+    if (roomsRes.status !== 200) {
+      setOutput({ error: 'Could not load rooms (status ' + roomsRes.status + ')' });
+      return;
+    }
+    const rooms = await roomsRes.json();
+    if (!rooms.length) {
+      setOutput({ error: 'No rooms yet. Create one in PostgreSQL Manager first.' });
+      return;
+    }
+    const roomId = rooms[0].id;
+
+    const payload = {
+      full_name: $('tenant-name').value.trim(),
+      monthly_income: Number($('tenant-income').value) || 0,
+      employment: $('tenant-emp').value.trim(),
+      references: ['Former landlord: Maria Santos'],
+      notes: 'Non-smoker, no pets'
+    };
+
+    const btn = $('btn-screen');
+    btn.disabled = true;
+    btn.textContent = 'Calling Gemini…';
+    setOutput({ status: 'screening against room #' + roomId + '…' });
+
+    try {
+      const res = await fetch('/api/v1/ai/tenant/screen?room_id=' + roomId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      setOutput(data);
+      loadLogs();
+    } catch (e) {
+      setOutput({ error: String(e) });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Screen';
+    }
+  }
+
+  async function loadLogs() {
+    const kind = $('filter-kind').value;
+    const url = '/api/v1/ai/logs?limit=30' + (kind ? '&kind=' + kind : '');
+    const container = $('logs-container');
+    container.innerHTML = '<p class="text-sm text-muted py-6 text-center">Loading…</p>';
+
+    try {
+      const res = await fetch(url);
+      if (res.status === 401) {
+        container.innerHTML = '<p class="text-sm text-red-600 py-6 text-center">Session expired</p>';
+        return;
+      }
+      const logs = await res.json();
+      if (!logs.length) {
+        container.innerHTML = '<p class="text-sm text-muted dark:text-slate-400 py-6 text-center">No AI calls yet. Run one above.</p>';
+        return;
+      }
+      const esc = s => (s || '').replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+      container.innerHTML = logs.map(l => `
+        <details class="mb-3 rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 border border-slate-200 dark:border-slate-700">
+          <summary class="cursor-pointer text-sm font-semibold flex items-center gap-3 flex-wrap">
+            <span class="chip">${l.kind}</span>
+            <span class="text-muted dark:text-slate-400 text-xs">${l.model}</span>
+            <span class="text-muted dark:text-slate-400 text-xs ml-auto">${l.latency_ms}ms</span>
+          </summary>
+          <div class="mt-3 space-y-3 text-xs">
+            <div>
+              <p class="card-label">Parsed output</p>
+              <pre class="bg-white dark:bg-[#132033] p-3 rounded-lg mt-1 overflow-x-auto whitespace-pre-wrap">${esc(JSON.stringify(l.parsed, null, 2))}</pre>
+            </div>
+            <div>
+              <p class="card-label">Prompt</p>
+              <pre class="bg-white dark:bg-[#132033] p-3 rounded-lg mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">${esc(l.raw_prompt)}</pre>
+            </div>
+            <div>
+              <p class="card-label">Raw response</p>
+              <pre class="bg-white dark:bg-[#132033] p-3 rounded-lg mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">${esc(l.raw_response)}</pre>
+            </div>
+          </div>
+        </details>
+      `).join('');
+    } catch (e) {
+      container.innerHTML = '<p class="text-sm text-red-600 py-6 text-center">Error: ' + e + '</p>';
+    }
+  }
+
+  // Wire up buttons
+  $('btn-classify').addEventListener('click', classifyMaintenance);
+  $('btn-screen').addEventListener('click', screenTenant);
+
+  // Init
+  checkStatus();
+  loadLogs();
+
+  // Expose loadLogs so the <select> onchange works
+  window.loadLogs = loadLogs;
+});
+</script>
 {% endblock %}
