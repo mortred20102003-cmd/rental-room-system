@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
@@ -17,10 +16,7 @@ services:
     ports: ["27017:27017"]
     volumes: [mongo_data:/data/db]
 
-  app:
-    build: .
-    ports: ["8000:8000"]
-    env_file: .env
-    depends_on: [postgres, mongodb]
 
-volumes: { pg_data: {}, mongo_data: {} }
+volumes:
+  pg_data:
+  mongo_data:
