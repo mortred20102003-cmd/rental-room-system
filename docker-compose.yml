@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports: ["5432:5432"]
+    volumes: [pg_data:/var/lib/postgresql/data]
+
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: securepassword
+    ports: ["27017:27017"]
+    volumes: [mongo_data:/data/db]
+
+  app:
+    build: .
+    ports: ["8000:8000"]
+    env_file: .env
+    depends_on: [postgres, mongodb]
+
+volumes: { pg_data: {}, mongo_data: {} }

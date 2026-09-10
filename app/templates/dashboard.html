@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rental System Overview</title>
+<link rel="stylesheet" href="/static/css/dashboard.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <button class="menu-btn">☰</button>
+  <div class="brand">
+    <span class="brand-small">ALL-IN-ONE BACKEND</span>
+    <span class="brand-main">System overview</span>
+  </div>
+  <span class="env-badge" id="env-badge">DEVELOPMENT</span>
+  <button class="admin-btn" onclick="location.href='/login'">Owner<br/>sign in</button>
+</header>
+
+<main class="container">
+  <p class="eyebrow">RUNTIME PULSE</p>
+  <h1 class="page-title">System overview</h1>
+  <p class="subtitle">Live service availability and persisted record counts.</p>
+
+  <div class="status-chips" id="status-chips">
+    <span class="chip" id="chip-pg">PostgreSQL</span>
+    <span class="chip" id="chip-mongo">MongoDB</span>
+  </div>
+
+  <section class="metrics">
+    <div class="card">
+      <p class="card-label">TOTAL PROPERTIES</p>
+      <p class="card-value" id="m-properties">0</p>
+      <div class="bar"><div class="bar-fill" id="b-properties"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">TOTAL ROOMS</p>
+      <p class="card-value" id="m-rooms">0</p>
+      <div class="bar"><div class="bar-fill" id="b-rooms"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">OCCUPIED / VACANT</p>
+      <p class="card-value">
+        <span id="m-occupied">0</span>
+        <span class="slash">/</span>
+        <span id="m-vacant">0</span>
+      </p>
+      <div class="bar"><div class="bar-fill" id="b-occupied"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">ACTIVE TENANTS</p>
+      <p class="card-value" id="m-tenants">0</p>
+      <div class="bar"><div class="bar-fill" id="b-tenants"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">ACTIVE LEASES</p>
+      <p class="card-value" id="m-leases">0</p>
+      <div class="bar"><div class="bar-fill" id="b-leases"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">PENDING PAYMENTS</p>
+      <p class="card-value" id="m-pending">0</p>
+      <div class="bar"><div class="bar-fill" id="b-pending"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">OPEN MAINTENANCE</p>
+      <p class="card-value" id="m-maint">0</p>
+      <div class="bar"><div class="bar-fill" id="b-maint"></div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">USERS</p>
+      <p class="card-value" id="m-users">0</p>
+      <div class="bar"><div class="bar-fill" id="b-users"></div></div>
+    </div>
+  </section>
+
+  <section class="topology">
+    <h2>Service topology</h2>
+
+    <div class="service-item">
+      <span class="tag tag-http">HTTP</span>
+      <h3>FastAPI gateway</h3>
+      <p>Routes, validation, auth</p>
+    </div>
+
+    <div class="service-item">
+      <span class="tag tag-sql">SQL</span>
+      <h3>PostgreSQL</h3>
+      <p>Properties, rooms, tenants, leases, payments</p>
+    </div>
+
+    <div class="service-item">
+      <span class="tag tag-doc">DOC</span>
+      <h3>MongoDB Atlas</h3>
+      <p>Room photos, activity logs, tenant chat</p>
+    </div>
+  </section>
+
+  <section class="public-access">
+    <p class="eyebrow">PUBLIC ACCESS</p>
+    <h3>Read-only system information</h3>
+    <p>No Sign-In Required</p>
+    <a href="/docs" class="docs-link">Open raw API docs →</a>
+  </section>
+</main>
+
+<script src="/static/js/dashboard.js"></script>
+</body>
+</html>
