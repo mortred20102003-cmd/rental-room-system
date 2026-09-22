@@ -105,7 +105,7 @@
   {% if tenants %}
   <table class="data-table">
     <thead>
-      <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th class="text-right">Actions</th></tr>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Score</th><th class="text-right">Actions</th></tr>
     </thead>
     <tbody>
     {% for t in tenants %}
@@ -114,7 +114,26 @@
         <td class="font-semibold">{{ t.full_name }}</td>
         <td>{{ t.email or "—" }}</td>
         <td>{{ t.phone or "—" }}</td>
+        <td>
+          {% if t.screening_score is not none %}
+            {% if t.screening_score >= 75 %}
+              <span class="chip">{{ t.screening_score }} · {{ t.screening_verdict or "—" }}</span>
+            {% elif t.screening_score >= 50 %}
+              <span class="chip checking">{{ t.screening_score }} · {{ t.screening_verdict or "—" }}</span>
+            {% else %}
+              <span class="chip offline">{{ t.screening_score }} · {{ t.screening_verdict or "—" }}</span>
+            {% endif %}
+          {% else %}
+            <span class="text-muted dark:text-slate-500 text-xs">Not screened</span>
+          {% endif %}
+        </td>
         <td class="text-right">
+          <button class="btn btn-ghost btn-sm"
+                  data-tenant-id="{{ t.id }}"
+                  data-tenant-name="{{ t.full_name }}"
+                  onclick="openTenantScreenModal(this)">
+            📄 Screen
+          </button>
           <form method="post" action="/console/database/tenant/{{ t.id }}/delete"
                 onsubmit="return confirm('Delete tenant?')" class="inline">
             <button class="btn btn-danger btn-sm">Delete</button>
@@ -135,7 +154,7 @@
   {% if leases %}
   <table class="data-table">
     <thead>
-      <tr><th>ID</th><th>Room</th><th>Tenant</th><th>Start</th><th>End</th><th>Rent</th><th>Status</th></tr>
+      <tr><th>ID</th><th>Room</th><th>Tenant</th><th>Start</th><th>End</th><th>Rent</th><th>Status</th><th class="text-right">Actions</th></tr>
     </thead>
     <tbody>
     {% for l in leases %}
@@ -152,6 +171,13 @@
           {% else %}
           <span class="chip offline">{{ l.status }}</span>
           {% endif %}
+        </td>
+        <td class="text-right">
+          <button class="btn btn-ghost btn-sm"
+                  data-lease-id="{{ l.id }}"
+                  onclick="openLeaseSummaryModal(this)">
+            📋 Summarize
+          </button>
         </td>
       </tr>
     {% endfor %}
@@ -259,7 +285,7 @@
   </div>
 </div>
 
-<!-- 👤 Screen Applicant Modal -->
+<!-- 👤 Room Screen Modal -->
 <div id="modal-screen" class="modal-backdrop hidden">
   <div class="modal" style="max-width: 560px;">
     <h3 class="text-lg font-bold mb-1">Screen Applicant</h3>
@@ -269,7 +295,6 @@
       Deposit ₱<span id="screen-room-dep">—</span>
     </p>
 
-    <!-- Form view -->
     <div id="screen-form">
       <div class="space-y-3">
         <input id="screen-name" class="input" placeholder="Full name" />
@@ -291,7 +316,6 @@
       </div>
     </div>
 
-    <!-- Result view -->
     <div id="screen-result" class="hidden">
       <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 mb-4">
         <div class="flex items-center gap-3 mb-2">
@@ -331,12 +355,121 @@
   </div>
 </div>
 
+<!-- 📄 Tenant Screen Modal -->
+<div id="modal-tenant-screen" class="modal-backdrop hidden">
+  <div class="modal" style="max-width: 560px;">
+    <h3 class="text-lg font-bold mb-1">Screen Tenant</h3>
+    <p class="text-xs text-muted dark:text-slate-400 mb-4">
+      <span id="ts-tenant-name">—</span>
+    </p>
+
+    <div id="ts-form">
+      <div class="space-y-3">
+        <select id="ts-room" class="select">
+          <option value="">Select room…</option>
+          {% for r in rooms %}
+          <option value="{{ r.id }}">#{{ r.id }} — Room {{ r.room_number }} · ₱{{ "%.0f"|format(r.monthly_rent) }}/mo</option>
+          {% endfor %}
+        </select>
+        <input id="ts-income" class="input" type="number" placeholder="Monthly income" value="45000" />
+        <input id="ts-emp" class="input" placeholder="Employment"
+               value="Full-time, 3 years at current employer" />
+        <textarea id="ts-notes" class="input" rows="2" placeholder="Notes">Non-smoker, no pets</textarea>
+      </div>
+
+      <div class="flex gap-2 pt-4">
+        <button id="ts-submit" class="btn btn-primary flex-1" type="button">
+          🛠️ Run AI Screening
+        </button>
+        <button class="btn btn-ghost" type="button" onclick="closeModal('modal-tenant-screen')">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div id="ts-result" class="hidden">
+      <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 mb-4">
+        <div class="flex items-center gap-3 mb-2">
+          <div id="ts-score" class="text-2xl font-extrabold px-3 py-1 rounded-lg">—</div>
+          <div>
+            <p class="text-xs text-muted dark:text-slate-400">Verdict</p>
+            <p id="ts-verdict" class="font-bold">—</p>
+          </div>
+        </div>
+        <div id="ts-summary" class="text-sm mt-2 text-ink dark:text-slate-200">—</div>
+      </div>
+
+      <details class="text-xs mb-3">
+        <summary class="cursor-pointer font-semibold">Strengths &amp; concerns</summary>
+        <div class="mt-2 grid grid-cols-2 gap-3">
+          <div>
+            <p class="card-label mb-1 text-emerald-600">Strengths</p>
+            <ul id="ts-strengths" class="list-disc list-inside space-y-1"></ul>
+          </div>
+          <div>
+            <p class="card-label mb-1 text-amber-600">Concerns</p>
+            <ul id="ts-concerns" class="list-disc list-inside space-y-1"></ul>
+          </div>
+        </div>
+      </details>
+
+      <div class="flex gap-2">
+        <button class="btn btn-ghost flex-1" type="button" onclick="location.reload()">
+          ↻ Refresh table
+        </button>
+        <button class="btn btn-primary" type="button" onclick="closeModal('modal-tenant-screen')">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 📋 Lease Summary Modal -->
+<div id="modal-lease-summary" class="modal-backdrop hidden">
+  <div class="modal" style="max-width: 600px;">
+    <h3 class="text-lg font-bold mb-1">Lease Summary</h3>
+    <p class="text-xs text-muted dark:text-slate-400 mb-4">AI-generated plain-English summary</p>
+
+    <div id="ls-loading" class="py-6 text-center">
+      <p class="text-sm text-muted dark:text-slate-400">🛠️ Asking Gemini to summarize the lease…</p>
+    </div>
+
+    <div id="ls-result" class="hidden">
+      <div class="rounded-xl bg-slate-50 dark:bg-[#0F1B2D] p-4 mb-4">
+        <p class="card-label">Headline</p>
+        <p id="ls-headline" class="text-lg font-bold mt-1 mb-3">—</p>
+
+        <p class="card-label">Plain-English Summary</p>
+        <p id="ls-summary" class="text-sm mt-1 text-ink dark:text-slate-200">—</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div class="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-3">
+          <p class="card-label mb-2 text-emerald-700 dark:text-emerald-400">Key Obligations</p>
+          <ul id="ls-obligations" class="text-xs space-y-1 list-disc list-inside"></ul>
+        </div>
+        <div class="rounded-xl bg-amber-50 dark:bg-amber-900/20 p-3">
+          <p class="card-label mb-2 text-amber-700 dark:text-amber-400">Risks to Note</p>
+          <ul id="ls-risks" class="text-xs space-y-1 list-disc list-inside"></ul>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button class="btn btn-ghost flex-1" type="button" onclick="closeModal('modal-lease-summary')">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
 /* ============================================================
-   Database page — tabs, modals, AI screening
+   Database page — tabs, modals, AI screening, lease summary
    ============================================================ */
 
 // ---------- Tabs ----------
@@ -375,7 +508,17 @@ document.addEventListener('keydown', function (e) {
   }
 });
 
-// ---------- 👤 AI Screening ----------
+// ---------- escapeHtml (shared) ----------
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/[<>&"]/g, function (c) {
+      return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];
+    });
+}
+
+// ============================================================
+// 👤 Room Screening
+// ============================================================
 var _screenRoom = null;
 
 function openScreenModal(btn) {
@@ -389,7 +532,6 @@ function openScreenModal(btn) {
   document.getElementById('screen-room-rent').textContent  = _screenRoom.rent;
   document.getElementById('screen-room-dep').textContent   = _screenRoom.dep;
 
-  // Reset to form view
   document.getElementById('screen-form').classList.remove('hidden');
   document.getElementById('screen-result').classList.add('hidden');
 
@@ -399,13 +541,6 @@ function openScreenModal(btn) {
 function resetScreen() {
   document.getElementById('screen-form').classList.remove('hidden');
   document.getElementById('screen-result').classList.add('hidden');
-}
-
-function escapeHtml(s) {
-  return String(s == null ? '' : s)
-    .replace(/[<>&"]/g, function (c) {
-      return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];
-    });
 }
 
 function showScreenResult(r) {
@@ -431,21 +566,12 @@ function showScreenResult(r) {
   var strengthsEl = document.getElementById('screen-strengths');
   var concernsEl  = document.getElementById('screen-concerns');
 
-  if (r.strengths && r.strengths.length) {
-    strengthsEl.innerHTML = r.strengths.map(function (s) {
-      return '<li>' + escapeHtml(s) + '</li>';
-    }).join('');
-  } else {
-    strengthsEl.innerHTML = '<li class="text-muted">None listed</li>';
-  }
-
-  if (r.concerns && r.concerns.length) {
-    concernsEl.innerHTML = r.concerns.map(function (s) {
-      return '<li>' + escapeHtml(s) + '</li>';
-    }).join('');
-  } else {
-    concernsEl.innerHTML = '<li class="text-muted">None listed</li>';
-  }
+  strengthsEl.innerHTML = (r.strengths && r.strengths.length)
+    ? r.strengths.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('')
+    : '<li class="text-muted">None listed</li>';
+  concernsEl.innerHTML = (r.concerns && r.concerns.length)
+    ? r.concerns.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('')
+    : '<li class="text-muted">None listed</li>';
 }
 
 async function submitScreen() {
@@ -469,13 +595,11 @@ async function submitScreen() {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(payload)
     });
-
     if (!res.ok) {
       var err = await res.json().catch(function () { return {}; });
       if (window.toast) toast('Screening failed: ' + (err.detail || res.status), 'error');
       return;
     }
-
     var data = await res.json();
     showScreenResult(data);
     if (window.toast) toast('Screening complete', 'success');
@@ -488,5 +612,144 @@ async function submitScreen() {
 }
 
 document.getElementById('screen-submit').addEventListener('click', submitScreen);
+
+// ============================================================
+// 📄 Tenant Screening
+// ============================================================
+var _tenantScreen = null;
+
+function openTenantScreenModal(btn) {
+  _tenantScreen = {
+    id:   btn.dataset.tenantId,
+    name: btn.dataset.tenantName
+  };
+  document.getElementById('ts-tenant-name').textContent = _tenantScreen.name;
+
+  document.getElementById('ts-form').classList.remove('hidden');
+  document.getElementById('ts-result').classList.add('hidden');
+
+  openModal('modal-tenant-screen');
+}
+
+async function submitTenantScreen() {
+  var roomId = document.getElementById('ts-room').value;
+  if (!roomId) {
+    if (window.toast) toast('Pick a room first', 'error');
+    return;
+  }
+
+  var payload = {
+    room_id: Number(roomId),
+    monthly_income: Number(document.getElementById('ts-income').value) || 0,
+    employment: document.getElementById('ts-emp').value.trim(),
+    references: [],
+    notes: document.getElementById('ts-notes').value.trim()
+  };
+
+  var btn = document.getElementById('ts-submit');
+  var original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '🛠️ Calling Gemini…';
+
+  try {
+    var res = await fetch('/api/v1/ai/tenant/' + _tenantScreen.id + '/screen', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      var err = await res.json().catch(function () { return {}; });
+      if (window.toast) toast('Screening failed: ' + (err.detail || res.status), 'error');
+      return;
+    }
+
+    var data = await res.json();
+    showTenantScreenResult(data);
+    if (window.toast) toast('Tenant screened & saved', 'success');
+  } catch (e) {
+    if (window.toast) toast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
+function showTenantScreenResult(r) {
+  document.getElementById('ts-form').classList.add('hidden');
+  document.getElementById('ts-result').classList.remove('hidden');
+
+  var score = (r.score != null) ? r.score : 0;
+  var badge = document.getElementById('ts-score');
+  badge.textContent = score;
+  if (score >= 75) {
+    badge.style.background = '#E6F7EF'; badge.style.color = '#1A7F4B';
+  } else if (score >= 50) {
+    badge.style.background = '#FDF6E3'; badge.style.color = '#B8860B';
+  } else {
+    badge.style.background = '#FDECEC'; badge.style.color = '#C0392B';
+  }
+
+  var map = { approve: '✅ Approve', review: '⚠️ Review', reject: '❌ Reject' };
+  document.getElementById('ts-verdict').textContent = map[r.verdict] || r.verdict || '—';
+  document.getElementById('ts-summary').textContent = r.summary || '—';
+
+  var sEl = document.getElementById('ts-strengths');
+  var cEl = document.getElementById('ts-concerns');
+  sEl.innerHTML = (r.strengths && r.strengths.length)
+    ? r.strengths.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('')
+    : '<li class="text-muted">None listed</li>';
+  cEl.innerHTML = (r.concerns && r.concerns.length)
+    ? r.concerns.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('')
+    : '<li class="text-muted">None listed</li>';
+}
+
+document.getElementById('ts-submit').addEventListener('click', submitTenantScreen);
+
+// ============================================================
+// 📋 Lease Summary
+// ============================================================
+function openLeaseSummaryModal(btn) {
+  var leaseId = btn.dataset.leaseId;
+
+  document.getElementById('ls-loading').classList.remove('hidden');
+  document.getElementById('ls-result').classList.add('hidden');
+  openModal('modal-lease-summary');
+
+  fetch('/api/v1/ai/lease/' + leaseId + '/summary', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(function (res) {
+    if (!res.ok) throw new Error('Status ' + res.status);
+    return res.json();
+  })
+  .then(function (data) {
+    showLeaseSummary(data);
+    if (window.toast) toast('Lease summarized', 'success');
+  })
+  .catch(function (e) {
+    document.getElementById('ls-loading').innerHTML =
+      '<p class="text-sm text-red-600">Failed: ' + e.message + '</p>';
+    if (window.toast) toast('Lease summary failed', 'error');
+  });
+}
+
+function showLeaseSummary(r) {
+  document.getElementById('ls-loading').classList.add('hidden');
+  document.getElementById('ls-result').classList.remove('hidden');
+
+  document.getElementById('ls-headline').textContent = r.headline || '—';
+  document.getElementById('ls-summary').textContent = r.plain_english_summary || '—';
+
+  var oEl = document.getElementById('ls-obligations');
+  var rEl = document.getElementById('ls-risks');
+  oEl.innerHTML = (r.key_obligations && r.key_obligations.length)
+    ? r.key_obligations.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('')
+    : '<li class="text-muted">None listed</li>';
+  rEl.innerHTML = (r.risks && r.risks.length)
+    ? r.risks.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('')
+    : '<li class="text-muted">None listed</li>';
+}
 </script>
 {% endblock %}
